@@ -1,0 +1,97 @@
+
+def crossbridgeFastAndSlow(startPoint, onTheBridge):
+    
+    StartPoint = startPoint 
+    numOfPeople = onTheBridge 
+    EndPoint = [] 
+    mySide = 0 
+    totalTime = 0 
+    
+    
+    while len(StartPoint) > 0: 
+        if mySide == 0:
+            StartPoint.sort()
+            crossers = []
+            #ako prvi put prelazim prebacujem najbrzeg
+            #ako sam na kraju mosta ostavila sve sporije nego oni koji ce mi ostati nakon sto odem treba opet da prebacim najbrze
+            #hocu opet da prebacim najbrze da moogu da mi vracaju baklju
+            if len(EndPoint) == 0 or min(StartPoint[-numOfPeople:]) <= min(EndPoint):
+                if StartPoint:
+                    crossers.append(StartPoint.pop(0))
+                    
+                for i in range(1,numOfPeople):
+                    if StartPoint:
+                        crossers.append(StartPoint.pop(-1))
+                        
+            else:
+                for i in range(0,numOfPeople):
+                    if StartPoint:
+                        crossers.append(StartPoint.pop(-1))
+                    
+            totalTime = totalTime + max(crossers)
+            EndPoint.extend(crossers)
+           
+            mySide = 1 
+            
+        elif mySide == 1: #uvek saljem najbrzeg nazad
+            EndPoint.sort()
+            send = EndPoint.pop(0)
+            StartPoint.append(send)
+            totalTime = totalTime + send
+            mySide = 0
+            
+    return totalTime
+
+    
+
+def crossbridgeFast(startPoint, onTheBridge):
+    
+    StartPoint = startPoint 
+    numOfPeople = onTheBridge 
+    EndPoint = [] 
+    mySide = 0 
+    totalTime = 0 
+    
+    
+    while len(StartPoint) > 0: 
+        if mySide == 0:
+            StartPoint.sort()
+            crossers = []
+            #ako prvi put prelazim prebacujem najbrzeg
+            #ako sam na kraju mosta ostavila sve sporije nego oni koji ce mi ostati nakon sto odem treba opet da prebacim najbrze
+            #hocu opet da prebacim najbrze da moogu da mi vracaju baklju
+            if len(EndPoint) == 0 or min(StartPoint[-numOfPeople:]) <= min(EndPoint):
+   
+                for i in range(0,numOfPeople):
+                    if StartPoint:
+                        crossers.append(StartPoint.pop(0))
+                        
+            else:
+                for i in range(0,numOfPeople):
+                    if StartPoint:
+                        crossers.append(StartPoint.pop(-1))
+                    
+            totalTime = totalTime + max(crossers)
+            EndPoint.extend(crossers)
+           
+            mySide = 1 
+            
+        elif mySide == 1: #uvek saljem najbrzeg nazad
+            EndPoint.sort()
+            send = EndPoint.pop(0)
+            StartPoint.append(send)
+            totalTime = totalTime + send
+            mySide = 0
+            
+    return totalTime
+    
+StartPoint = input("Enter persons times: ")
+numOfPeople = input("Enter the number of people on the bridge: ")
+print ()
+StartPoint1 = list(map(int, StartPoint.split()))
+StartPoint2 = list(map(int, StartPoint.split()))
+numOfPeople = int(numOfPeople)
+ 
+totalTime1 = crossbridgeFastAndSlow(StartPoint1, numOfPeople)
+totalTime2 = crossbridgeFast(StartPoint2, numOfPeople)  
+print("Total time to cross is:",min(totalTime1,totalTime2))
