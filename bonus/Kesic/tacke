@@ -1,0 +1,138 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Numerics;
+
+namespace IOA_Pins
+{
+    class Program
+    {
+        List<double> x = new List<double>() { 62.0, 57.5, 51.7, 67.9, 57.7, 54.2, 46.0, 34.7, 45.7, 34.7, 28.4, 33.4, 22.9, 21.5, 15.3, 15.1, 9.1, 9.1, 2.7, 2.7 };
+        List<double> y = new List<double>() { 58.4, 56.0, 56.0, 19.6, 42.1, 29.1, 45.1, 45.1, 25.1, 26.4, 31.7, 60.5, 32.7, 45.8, 37.8, 49.6, 52.8, 40.3, 56.8, 33.1 };
+
+        private double distanceBetweenPins(int dot1, int dot2)
+        {
+            return Math.Sqrt(Math.Pow(x[dot1] - x[dot2], 2) + Math.Pow(y[dot1] - y[dot2], 2));
+        }
+
+        private double sumOfDistances(List<int> pins)
+        {
+            double sum = 0;
+            for (int i = 0; i < pins.Count - 1; i++)
+            {
+                sum = sum + distanceBetweenPins(pins[i], pins[i + 1]);
+            }
+            return sum;
+        }
+
+        private int findClosestPin(List<int> curr, int lastElement)
+        {
+            double min = Double.MaxValue;
+            int minIndex = -1;
+            
+            for(int i = 0; i < x.Count; i++)
+            {
+                
+                if (curr.Exists(p=> p==i) == true) continue;
+                if (i == lastElement) continue;
+ 
+                double distance = distanceBetweenPins(i, lastElement);
+                if (distance < min)
+                {
+                    min = distance;
+                    minIndex = i;
+                }
+            }
+            return minIndex;
+        }
+
+        private List<int> createResultFromPin(int index)
+        {
+            List<int> result = new List<int>();
+            result.Add(index);
+            while(result.Count < x.Count)
+            {
+                int last = result[result.Count - 1];
+                int next = findClosestPin(result, last);
+                result.Add(next);
+            }
+            return result;
+        }
+
+        private List<int> getBestHillClimbingResult()
+        {
+            double bestResultSum = Double.MaxValue;
+            List<int> bestResultArray=null;
+            List<int> currentArray;
+            for(int i = 0; i < x.Count; i++)
+            {
+                currentArray = createResultFromPin(i);
+                if (sumOfDistances(currentArray) < bestResultSum)
+                {
+                    bestResultSum = sumOfDistances(currentArray);
+                    bestResultArray = new List<int>(currentArray);
+                }
+            }
+            return bestResultArray;
+        }
+
+        private List<int> optimizeBestHillClimbingResult(List<int> pins)
+        {
+            double currentBestSum = sumOfDistances(pins);
+            bool isImproved = true;
+
+            while (isImproved)
+            {
+                isImproved = false;
+                for(int i = 0; i < x.Count; i++)
+                {
+                    for (int j = i + 1; j < x.Count; j++)
+                    {
+                        List<int> permutated = new List<int>(pins);
+                        int temp = permutated[i];
+                        permutated[i] = permutated[j];
+                        permutated[j] = temp;
+
+                        double permutatedSum = sumOfDistances(permutated);
+                        if (permutatedSum < currentBestSum)
+                        {
+                            pins = new List<int>(permutated);
+                            currentBestSum = permutatedSum;
+                            isImproved = true;
+                        }
+                    }
+                }
+            }
+
+            return pins;
+        }
+
+        private void printBestResult(List<int> pins)
+        { 
+            Console.WriteLine("Best result is: " + sumOfDistances(pins));
+            Console.WriteLine("Order of the pins is: ");
+            for(int i = 0; i < pins.Count; i++)
+            {
+                Console.Write(pins[i] + " ");
+                if (i != pins.Count - 1)
+                {
+                    Console.Write("-> ");
+                }
+            }
+        }
+
+        public void run()
+        {
+            List<int> pins = getBestHillClimbingResult();
+            pins = new List<int>(optimizeBestHillClimbingResult(pins));
+
+            printBestResult(pins);
+        }
+
+        static void Main(string[] args)
+        {        
+            Program program = new Program();
+            program.run();
+        }
+    }
+}

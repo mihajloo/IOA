@@ -1,0 +1,230 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace IOA_Bridge
+{
+    class Program
+    {
+
+        List<int> times = new List<int>();
+        List<int> selectedSimple = new List<int>();
+        List<int> selectedReserve = new List<int>();
+        Queue<int> algChosen = new Queue<int>();
+        int numPeople;
+        int capacity;
+        int time;
+
+        private void init()
+        {
+            Console.WriteLine("Number of people: ");
+            numPeople = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("Bridge capacity: ");
+            capacity = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("Enter times: ");
+            for (int i = 0; i < numPeople; i++)
+            {
+                times.Add(Convert.ToInt32(Console.ReadLine()));
+                selectedReserve.Add(0);
+                selectedSimple.Add(0);
+            }
+            times.Sort();
+        }
+
+        public void run()
+        {
+            init();
+            if (capacity < 2) return;
+            int crossed = 0, crossedSimple = 0, crossedReserved = 0,
+                simpleTime = 0, reservedTime = 0, count = 0, max=0;
+
+            while(crossed != numPeople)
+            {
+                // first
+                for(int i = 0; i < capacity; i++)
+                {
+                    selectedSimple[0] = 1;
+                    crossedSimple++;
+                    count = 1;
+                    for(int j=numPeople-1; count<capacity && j >= 0; j--)
+                    {
+                        if(selectedSimple[j] == 0)
+                        {
+                            selectedSimple[j] = 1;
+                            crossedSimple++;
+                            if (count == 1) max = j;
+                            count++;
+                        }
+                    }
+                    simpleTime += times[max];
+                    if (crossedSimple == numPeople) break;
+                    else
+                    {
+                        selectedSimple[0] = 0;
+                        crossedSimple--;
+                        simpleTime += times[0];
+                    }
+                }
+                // second
+                int flag=0;
+                for(int i = 0; i < capacity; i++)
+                {
+                    if (selectedReserve[i] == 0)
+                    {
+                        selectedReserve[i] = 1;
+                        crossedReserved++;
+                        flag = i;
+                    }
+                }
+                reservedTime += times[flag];
+                if(crossedReserved != numPeople)
+                {
+                    for (int i = 0; i < capacity; i++)
+                    {
+                        for (int j = 0; j < capacity; j++)
+                        {
+                            if (selectedReserve[j] == 1)
+                            {
+                                selectedReserve[j] = 0;
+                                reservedTime += times[j];
+                                crossedReserved--;
+                                break;
+                            }
+                        }
+                        if (i == capacity - 1) break;
+                        count = 0;
+
+                        for (int j = numPeople - 1; count < capacity && j >= 0;j--)
+                        {
+                            // TODO: continue
+                            if(selectedReserve[j] == 0)
+                            {
+                                selectedReserve[j] = 1;
+                                crossedReserved++;
+                                if (count == 0) max = j;
+                                count++;
+                            }
+                        }
+                        reservedTime += times[max];
+                        if (crossedReserved == numPeople) break;
+                    }
+                }
+                if (reservedTime < simpleTime) time = reservedTime;
+                else time = simpleTime;
+
+                if(time == simpleTime)
+                {
+                    reservedTime = time;
+                    selectedReserve = new List<int>(selectedSimple);
+                    algChosen.Enqueue(1);
+                }
+                else
+                {
+                    simpleTime = time;
+                    selectedSimple = new List<int>(selectedReserve);
+                    algChosen.Enqueue(2);
+                }
+
+                crossed = crossedSimple;
+            }
+
+            printResults();
+        }
+
+        private void printResults()
+        {
+            int crossed = 0,count,max=0;
+            List<int> selected = new List<int>();
+            Console.WriteLine("Time needed is: " + time);
+            for(int i = 0; i < numPeople; i++)
+            {
+                selected.Add(0);
+            }
+            while(crossed != numPeople)
+            {
+                int algorithm = algChosen.Dequeue();
+                if(algorithm == 1)
+                {
+                    for (int i = 0; i < capacity; i++)
+                    {
+                        selected[0] = 1;
+                        crossed++;
+                        count = 1;
+                        Console.Write("Going: " + times[0] + " ");
+
+                        for (int j = numPeople - 1; count < capacity && j >= 0; j--)
+                        {
+                            if (selected[j] == 0)
+                            {
+                                selected[j] = 1;
+                                crossed++;
+                                Console.Write(times[j] + " ");
+                                if (count == 1) max = j;
+                                count++;
+                            }
+                        }
+                        if (crossed == numPeople) break;
+                        else
+                        {
+                            selected[0] = 0;
+                            crossed--;
+                            Console.WriteLine("\nReturn: " + times[0]);
+                        }
+                    }
+                }
+                else
+                {
+                    Console.Write("Going: ");
+                    int flag = 0;
+                    for (int i = 0; i < capacity; i++)
+                    {
+                        if (selected[i] == 0)
+                        {
+                            selected[i] = 1;
+                            Console.Write(times[i] + " ");
+                            crossed++;
+                            flag = i;
+                        }
+                    }
+                    if (crossed != numPeople)
+                    {
+                        for (int i = 0; i < capacity; i++)
+                        {
+                            for (int j = 0; j < capacity; j++)
+                            {
+                                if (selected[j] == 1)
+                                {
+                                    selected[j] = 0;
+                                    Console.WriteLine("\nReturn: " + times[j]);
+                                    crossed--;
+                                    break;
+                                }
+                            }
+                            if (i == capacity - 1) break;
+                            count = 0;
+                            Console.Write("Going: ");
+                            for (int j = numPeople - 1; count < capacity && j >= 0;j--)
+                            {
+                                // TODO: continue
+                                if (selected[j] == 0)
+                                {
+                                    selected[j] = 1;
+                                    Console.Write(times[j] + " ");
+                                    crossed++;
+                                    if (count == 0) max = j;
+                                    count++;
+                                }
+                            }
+                            if (crossed == numPeople) break;
+                        }
+                    }
+                }
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            Program program = new Program();
+            program.run();
+        }
+    }
+}
